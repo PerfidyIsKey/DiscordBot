@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 
 var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb+srv://Perfidy:rhHfMOdWC1T9uCB1@discordbot.mjhf6.gcp.mongodb.net/DiscordBots?retryWrites=true&w=majority";
+var url = process.env.MONGO_STRING;
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
