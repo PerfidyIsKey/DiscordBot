@@ -8,45 +8,50 @@ client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
 });
 
-client.on('message', msg => {
+let prefix = "+"
+
+function addPrefix(command) {
+    return prefix + command
+}
+
+function messageHandler(msg){
     let resume = false
     let heads = true
     let content = msg.content
     let win = false
-    let prefix = "+"
 
-    if (msg.content.startsWith(prefix + "heads")) {
+    if (msg.content.startsWith(addPrefix("heads"))) {
         heads = true
         resume = true
-        content = content.replace(prefix + "heads ", "")
+        content = content.replace(addPrefix("heads "), "")
     }
-    else if (msg.content.startsWith(prefix + "tails")) {
+    else if (msg.content.startsWith(addPrefix("tails"))) {
         heads = false
         resume = true
-        content = content.replace(prefix + "tails ", "")
+        content = content.replace(addPrefix("tails "), "")
     }
-    else if (msg.content == prefix + "credits") {
+    else if (msg.content == addPrefix("credits")) {
         MongoClient.connect(url, function (err, db) {
             if (err) throw err;
             var dbo = db.db("DiscordBots");
 
             let query = { id: msg.author.id };
             //find
-            
-                dbo.collection("DiscordBot1").find(query).toArray(function (err, result) {
-                    if (err) throw err;
-                    console.log("information gathered.");
-                    if (!result || !result[0]) {
-                        msg.reply("No data found.")
-                    } else {
-                        msg.reply("You currently have **" + result[0].credits + "** credits.")
-                    }
-                    db.close()
-                })
+
+            dbo.collection("DiscordBot1").find(query).toArray(function (err, result) {
+                if (err) throw err;
+                console.log("information gathered.");
+                if (!result || !result[0]) {
+                    msg.reply("No data found.")
+                } else {
+                    msg.reply("You currently have **" + result[0].credits + "** credits.")
+                }
+                db.close()
             })
+        })
         resume = false
-    } else if (msg.content == prefix + "help"){
-        msg.reply(prefix + "heads <credits> / " + prefix + "tails <credits> / "+ prefix +"credits")
+    } else if (msg.content == addPrefix("help")) {
+        msg.reply(prefix + "heads <credits> / " + prefix + "tails <credits> / " + prefix + "credits")
         resume = false
     }
     else {
@@ -91,6 +96,7 @@ client.on('message', msg => {
 
             dbPromise.then((result) => {
                 userCredits = result[0].credits
+                content = Math.round(+content)
                 if (+content <= userCredits && +content > 0) {
                     let rn = Math.round(Math.random())
                     if (rn == 0 && heads || rn == 1 && !heads) {
@@ -137,14 +143,17 @@ client.on('message', msg => {
                 dbo.collection("DiscordBot1").insertOne(myobj, function (err, res) {
                     if (err) throw err;
                     console.log("1 document inserted.")
-                    msg.reply("You are now registered. You will now be able to gamble.");
                     db.close();
+                    messageHandler(msg)
                 })
             })
-
-
         });
     }
+
+}
+
+client.on('message', msg => {
+    messageHandler(msg)
 });
 
 let token = process.env.DISCORD_BOT_TOKEN
