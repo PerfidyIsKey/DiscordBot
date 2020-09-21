@@ -39,7 +39,13 @@ function dailyCredits(msg, db, dbo) {
         let todayDate = new Date()
 
         if (!result || !result[0] || !result[0].dailyDate) {
-            addDaily(newCredits, msg, result, todayDate, db, dbo, query)
+            if (!result || !result[0]) {
+                createNewUser(msg, db, dbo)
+            }
+            else {
+                addDaily(newCredits, msg, result, todayDate, db, dbo, query)
+            }
+
         } else {
             let oldDate = result[0].dailyDate
 
@@ -140,7 +146,7 @@ function messageHandler(msg) {
                 if (err) throw err;
                 console.log("information gathered.");
                 if (!result || !result[0]) {
-                    msg.reply("No data found.")
+                    createNewUser(msg, db, dbo)
                 } else {
                     msg.reply("You currently have **" + result[0].credits + "** credits.")
                 }
