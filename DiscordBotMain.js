@@ -293,7 +293,7 @@ function messageHandler(msg) {
         if (err) throw err;
         var dbo = db.db("DiscordBots");
 
-        let commands = ["heads <credits>", "tails <credits>", "credits", "daily"]
+        let commands = ["heads <credits>", "tails <credits>", "credits", "daily", "duel @user <credits>"]
 
         let resume = false
         let heads = true
