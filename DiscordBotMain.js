@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 
 var MongoClient = require('mongodb').MongoClient;
-var url = process.env.MONGO_STRING;
+
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
@@ -30,16 +30,45 @@ function IDExtractor(user) {
 function IDEncaser(id) {
     let user = "<@" + id + ">"
     return user
-
 }
 
-function checkCredits(userID, dbo, amount, resolve) {
+function giveMoney(msg, content, db ,dbo) {
+    let user = content.split(" ")[0]
+    let amount = content.split(" ")[1]
+    amount = roundAmount(amount)
+
+    const giveMoneyPromise = new Promise((resolve, reject) => {
+        checkCredits(msg.author.id, dbo, amount, resolve, reject)
+    })
+
+    giveMoneyPromise.then((result) =>{
+        const innerGiveMoneyPromise = new Promise((resolve, reject) => {
+            updateCredits(msg.author.id, (amount * -1), db, dbo, resolve, reject)
+        })
+
+        innerGiveMoneyPromise.then(() => {
+            updateCredits(IDExtractor(user), amount, db, dbo)
+            msg.reply("You gave **" + amount + "** credits to " + user + "!")
+        })
+
+        innerGiveMoneyPromise.catch(() => {
+            msg.reply("Something went wrong trying to give money :(")
+        })
+    })
+
+    giveMoneyPromise.catch(() => {
+        msg.reply("Something went wrong trying to give money :(")
+    })
+}
+
+function checkCredits(userID, dbo, amount, resolve, reject) {
     let query = { id: userID };
 
     dbo.collection("DiscordBot1").find(query).toArray(function (err, result) {
         if (err) throw err;
         console.log("information gathered.");
         if (!result || !result[0] || !result[0].credits) {
+            reject()
             return false
         } else {
             if (+(result[0].credits) >= +amount && +amount > 0) {
@@ -48,6 +77,7 @@ function checkCredits(userID, dbo, amount, resolve) {
                 }
                 return true
             } else {
+                reject()
                 return false
             }
         }
@@ -55,14 +85,15 @@ function checkCredits(userID, dbo, amount, resolve) {
     })
 }
 
-function updateCredits(userID, amount, db, dbo, outerResolve) {
+function updateCredits(userID, amount, db, dbo, outerResolve, outerReject) {
     let query = { id: userID };
     const creditUpdatePromise = new Promise((resolve, reject) => {
         
         dbo.collection("DiscordBot1").find(query).toArray(function (err, result) {
             if (err) throw err;
             console.log("information gathered.");
-            if (!result || !result[0] || !result[0].credits) {
+            console.log(result[0])
+            if (!result || !result[0] || (!result[0].credits && result[0].credits != 0)) {
                 reject()
             } else {
                 resolve(result[0].credits)
@@ -81,16 +112,28 @@ function updateCredits(userID, amount, db, dbo, outerResolve) {
             }
         });
     })
+
+    creditUpdatePromise.catch(() =>{
+        if(outerReject){
+            outerReject()
+        } else {
+            db.close()
+        }
+    })
 }
 
 function duelWin(winnerID, loserID, amount, db, dbo, msg) {
     const duelWinPromise = new Promise((resolve, reject) => {
         msg.channel.send(IDEncaser(winnerID) + ", You won **" + amount + "** credits from " + IDEncaser(loserID) + "!")
-        updateCredits(winnerID, amount, db, dbo, resolve)
+        updateCredits(winnerID, amount, db, dbo, resolve, reject)
     })
 
     duelWinPromise.then(() => {
         updateCredits(loserID, (amount * -1), db, dbo)
+    })
+
+    duelWinPromise.catch(() =>{
+
     })
 }
 
@@ -159,16 +202,15 @@ function duel(msg, db, dbo, content) {
     } else {
         let playerID = IDExtractor(player)
         let userID = msg.author.id
-        //userID != playerID 
-        if (true) {
+        if (userID != playerID ) {
             amount = roundAmount(amount)
             const duelPromise = new Promise((resolve, reject) => {
-                checkCredits(playerID, dbo, amount, resolve)
+                checkCredits(playerID, dbo, amount, resolve, reject)
             })
 
             duelPromise.then((result) => {
                 const innerPromise = new Promise((resolve, reject) => {
-                    checkCredits(userID, dbo, amount, resolve)
+                    checkCredits(userID, dbo, amount, resolve, reject)
                 })
 
                 innerPromise.then((innerResult) => {
@@ -177,6 +219,10 @@ function duel(msg, db, dbo, content) {
                     } else {
                         duelRequest(msg, db, dbo, player, false, amount)
                     }
+                })
+
+                innerPromise.catch(() => {
+                    duelRequest(msg, db, dbo, player, false, amount)
                 })
             })
 
@@ -188,10 +234,21 @@ function duel(msg, db, dbo, content) {
 }
 
 function addDaily(newCredits, msg, result, todayDate, db, dbo, query) {
-    let dailyAmount = 200
+    
+    let streakVal = result[0].dailyStreak
+
+    let streakTimeout = 60 * 60 * 30 * 1000
+
+    let oldDate = result[0].dailyDate
+
+    if(!streakVal || (+todayDate - +oldDate) > streakTimeout) {
+        streakVal = 0
+    }
+    let dailyAmount = 200 + (200 * +streakVal)
+    streakVal += 0.1
     newCredits = +(result[0].credits) + dailyAmount
 
-    newvalues = { $set: { credits: newCredits, dailyDate: todayDate } };
+    newvalues = { $set: { credits: newCredits, dailyDate: todayDate, dailyStreak: streakVal } };
 
     dbo.collection("DiscordBot1").updateOne(query, newvalues, function (err, res) {
         if (err) throw err;
@@ -293,7 +350,7 @@ function messageHandler(msg) {
         if (err) throw err;
         var dbo = db.db("DiscordBots");
 
-        let commands = ["heads <credits>", "tails <credits>", "credits", "daily", "duel @user <credits>"]
+        let commands = ["heads <credits>", "tails <credits>", "credits [@user]", "daily", "duel @user <credits>", "give @user <credits>"]
 
         let resume = false
         let heads = true
@@ -310,9 +367,19 @@ function messageHandler(msg) {
             resume = true
             content = content.replace(addPrefix("tails "), "")
         }
-        else if (msg.content == addPrefix("credits")) {
+        else if (msg.content.startsWith(addPrefix("credits"))) {
+            content = content.replace(addPrefix("credits "), "")
+            let userID = ""
+            let user = ""
+            if(content.startsWith("<")){
+                userID = IDExtractor(content)
+                user = content
+            } else {
+                userID = msg.author.id
+                user = IDEncaser(userID)
+            }
 
-            let query = { id: msg.author.id };
+            let query = { id: userID };
             //find
 
             dbo.collection("DiscordBot1").find(query).toArray(function (err, result) {
@@ -321,12 +388,16 @@ function messageHandler(msg) {
                 if (!result || !result[0]) {
                     createNewUser(msg, db, dbo)
                 } else {
-                    msg.reply("You currently have **" + result[0].credits + "** credits.")
+                    msg.channel.send(user + ", currently has **" + result[0].credits + "** credits.")
                 }
                 db.close()
             })
 
             resume = false
+        } else if(msg.content.startsWith(addPrefix("give"))){
+            content = content.replace(addPrefix("give "), "")
+            giveMoney(msg, content, db ,dbo)
+
         } else if (msg.content == addPrefix("help")) {
             let reply = "\n"
             for (command of commands) {
@@ -379,6 +450,8 @@ client.on('message', msg => {
     messageHandler(msg)
 });
 
-let token = process.env.DISCORD_BOT_TOKEN
+client.on('error', (error) => console.log("Client Error: " + error));
+
+
 
 client.login(token);
