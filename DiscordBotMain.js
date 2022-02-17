@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-const {resolve} = require('path');
+const { resolve } = require('path');
 const client = new Discord.Client();
 
 var MongoClient = require('mongodb').MongoClient;
@@ -35,12 +35,13 @@ function IDExtractor(user) {
 }
 
 function IDEncaser(id) {
-    return "<@" + id + ">"
+    let user = "<@" + id + ">"
+    return user
 }
 
 function roulette(msg, arguments) {
 
-    if (arguments[1] === "help") {
+    if (arguments[1] == "help") {
         rouletteHelp(msg, arguments)
     } else {
         let wager = roundAmount(arguments[2])
@@ -66,7 +67,7 @@ function roulette(msg, arguments) {
                 let finalRoll = doRoulette()
                 let multiplier = checkRoulette(arguments[1], roll, finalRoll)
 
-                if (multiplier !== 0) {
+                if (multiplier != 0) {
                     let amount = wager * multiplier
                     const innerRoulettePromise = new Promise((resolve, reject) => {
                         updateCredits(msg.author.id, amount, resolve, reject)
@@ -112,49 +113,25 @@ function rouletteHelp(msg, arguments) {
     let response = new Discord.MessageEmbed()
     response.setTitle("Roulette Help")
 
-    if (arguments[2] && arguments[2] === "board") {
+    if (arguments[2] && arguments[2] == "board") {
         rouletteBoard(msg)
     } else {
         response.addFields(
-            {name: "help board", value: addPrefix("roulette help board") + "\n This displays the board."},
-            {name: "number", value: addPrefix("roulette number <wager> <num>")},
-            {
-                name: 'split',
-                value: addPrefix("roulette split <wager> <num1> <num2>") + "\n A split is always on 2 numbers next to each other on the board. (num1 should always be lower than num2)"
-            },
-            {
-                name: 'street',
-                value: addPrefix("roulette street <wager> <num>") + "\n A street is 3 numbers next to each other horizontally. (The input expects the most left number)"
-            },
-            {
-                name: 'corner',
-                value: addPrefix("roulette corner <wager> <num>") + "\n A corner is the corner of 4 numbers on the board. (The input expects the top-left number)"
-            },
-            {
-                name: 'basket',
-                value: addPrefix("roulette basket <wager> <num>") + "\n A basket is either 0 + 1 + 2 or 0 + 2 + 3. You can pick these by using 1 and 2 respectively."
-            },
-            {
-                name: 'sixline',
-                value: addPrefix("roulette sixline <wager> <num>") + "\n A sixline is a double street. (The input expects the top-left number)"
-            },
-            {
-                name: 'column',
-                value: addPrefix("roulette street <wager> <num>") + "\n A column is an entire vertical line. (The input expects the top number)"
-            },
-            {
-                name: 'dozen',
-                value: addPrefix("roulette street <wager> <num>") + "\n A dozen is a double sixline. (The input expects the top-left number)"
-            },
-            {name: 'odd', value: addPrefix("roulette odd <wager>")},
-            {name: 'even', value: addPrefix("roulette even <wager>")},
-            {name: 'red', value: addPrefix("roulette red <wager>")},
-            {name: 'black', value: addPrefix("roulette black <wager>")},
-            {
-                name: 'low',
-                value: addPrefix("roulette low <wager>") + "\n low means everything under 19. (0 is the exception)"
-            },
-            {name: 'high', value: addPrefix("roulette high <wager>") + "\n high means everything above 18."},
+            { name: "help board", value: addPrefix("roulette help board") + "\n This displays the board." },
+            { name: "number", value: addPrefix("roulette number <wager> <num>") },
+            { name: 'split', value: addPrefix("roulette split <wager> <num1> <num2>") + "\n A split is always on 2 numbers next to each other on the board. (num1 should always be lower than num2)" },
+            { name: 'street', value: addPrefix("roulette street <wager> <num>") + "\n A street is 3 numbers next to each other horizontally. (The input expects the most left number)" },
+            { name: 'corner', value: addPrefix("roulette corner <wager> <num>") + "\n A corner is the corner of 4 numbers on the board. (The input expects the top-left number)" },
+            { name: 'basket', value: addPrefix("roulette basket <wager> <num>") + "\n A basket is either 0 + 1 + 2 or 0 + 2 + 3. You can pick these by using 1 and 2 respectively." },
+            { name: 'sixline', value: addPrefix("roulette sixline <wager> <num>") + "\n A sixline is a double street. (The input expects the top-left number)" },
+            { name: 'column', value: addPrefix("roulette street <wager> <num>") + "\n A column is an entire vertical line. (The input expects the top number)" },
+            { name: 'dozen', value: addPrefix("roulette street <wager> <num>") + "\n A dozen is a double sixline. (The input expects the top-left number)" },
+            { name: 'odd', value: addPrefix("roulette odd <wager>") },
+            { name: 'even', value: addPrefix("roulette even <wager>") },
+            { name: 'red', value: addPrefix("roulette red <wager>") },
+            { name: 'black', value: addPrefix("roulette black <wager>") },
+            { name: 'low', value: addPrefix("roulette low <wager>") + "\n low means everything under 19. (0 is the exception)" },
+            { name: 'high', value: addPrefix("roulette high <wager>") + "\n high means everything above 18." },
         )
 
         msg.reply(response)
@@ -169,33 +146,35 @@ function rouletteBoard(msg) {
     let values = ["", "", ""]
 
     for (let i = 1; i < 37; i++) {
-        if (i % 3 === 1) {
+        if (i % 3 == 1) {
             values[0] += i + " " + rouletteCheckColor(i) + "\n"
-        } else if (i % 3 === 2) {
+        }
+        else if (i % 3 == 2) {
             values[1] += i + " " + rouletteCheckColor(i) + "\n"
-        } else if (i % 3 === 0) {
+        }
+        else if (i % 3 == 0) {
             values[2] += i + " " + rouletteCheckColor(i) + "\n"
         } else {
 
         }
     }
     response.addFields(
-        {name: '-', value: values[0], inline: true},
-        {name: '0 green', value: values[1], inline: true},
-        {name: '-', value: values[2], inline: true}
+        { name: '-', value: values[0], inline: true },
+        { name: '0 green', value: values[1], inline: true },
+        { name: '-', value: values[2], inline: true }
     )
 
     msg.reply(response)
 }
 
 function rouletteCheckColor(roll) {
-    if (roll === 0) {
+    if (roll == 0) {
         return "green"
     } else {
         let red = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]
         let color = "black"
         for (num of red) {
-            if (roll === num) {
+            if (roll == num) {
                 color = "red"
                 break
             }
@@ -205,27 +184,27 @@ function rouletteCheckColor(roll) {
 }
 
 function rouletteValidation(resolve, reject, type, chosenRoll) {
-    if (type === "number" && ((chosenRoll[0] * 0) === 0 && chosenRoll[0] <= 36 && chosenRoll[0] >= 0) || chosenRoll[0] === 0) {
+    if (type == "number" && ((chosenRoll[0] * 0) == 0 && chosenRoll[0] <= 36 && chosenRoll[0] >= 0) || chosenRoll[0] == 0) {
         resolve()
-    } else if (type === "split" && ((chosenRoll[0] + 1) === chosenRoll[1] || (chosenRoll[0] + 3) === chosenRoll[1]) && chosenRoll[0] <= 36 && chosenRoll[0] >= 0) {
+    } else if (type == "split" && ((chosenRoll[0] + 1) == chosenRoll[1] || (chosenRoll[0] + 3) == chosenRoll[1]) && chosenRoll[0] <= 36 && chosenRoll[0] >= 0) {
         resolve()
-    } else if (type === "street" && ((chosenRoll[0] % 3) === 1) && chosenRoll[0] <= 36 && chosenRoll[0] >= 0) {
+    } else if (type == "street" && ((chosenRoll[0] % 3) == 1) && chosenRoll[0] <= 36 && chosenRoll[0] >= 0) {
         resolve()
-    } else if (type === "corner" && chosenRoll[0] <= 32 && chosenRoll[0] % 3 !== 0 && chosenRoll[0] >= 0) {
+    } else if (type == "corner" && chosenRoll[0] <= 32 && chosenRoll[0] % 3 != 0 && chosenRoll[0] >= 0) {
         resolve()
-    } else if (type === "basket" && (chosenRoll[0] === 1 || chosenRoll[0] === 2)) {
+    } else if (type == "basket" && (chosenRoll[0] == 1 || chosenRoll[0] == 2)) {
         resolve()
-    } else if (type === "sixline" && chosenRoll[0] <= 31 && chosenRoll[0] % 3 === 1 && chosenRoll[0] >= 0) {
+    } else if (type == "sixline" && chosenRoll[0] <= 31 && chosenRoll[0] % 3 == 1 && chosenRoll[0] >= 0) {
         resolve()
-    } else if (type === "column" && chosenRoll[0] >= 1 && chosenRoll[0] <= 3) {
+    } else if (type == "column" && chosenRoll[0] >= 1 && chosenRoll[0] <= 3) {
         resolve()
-    } else if (type === "dozen" && (chosenRoll[0] === 1 || chosenRoll[0] === 13 || chosenRoll[0] === 25)) {
+    } else if (type == "dozen" && (chosenRoll[0] == 1 || chosenRoll[0] == 13 || chosenRoll[0] == 25)) {
         resolve()
-    } else if (type === "odd" || type === "even") {
+    } else if (type == "odd" || type == "even") {
         resolve()
-    } else if (type === "red" || type === "black") {
+    } else if (type == "red" || type == "black") {
         resolve()
-    } else if (type === "low" || type === "high") {
+    } else if (type == "low" || type == "high") {
         resolve()
     } else {
         reject()
@@ -233,31 +212,32 @@ function rouletteValidation(resolve, reject, type, chosenRoll) {
 }
 
 function doRoulette() {
-    return Math.round(Math.random() * 36)
+    let random = Math.round(Math.random() * 36)
+    return random
 }
 
 function checkRoulette(type, chosenRoll, roll) {
-    if (type === "number") {
+    if (type == "number") {
         return rouletteNumber(chosenRoll, roll)
-    } else if (type === "split") {
+    } else if (type == "split") {
         return rouletteSplit(chosenRoll, roll)
-    } else if (type === "street") {
+    } else if (type == "street") {
         return rouletteStreet(chosenRoll, roll)
-    } else if (type === "corner") {
+    } else if (type == "corner") {
         return rouletteCorner(chosenRoll, roll)
-    } else if (type === "basket") {
+    } else if (type == "basket") {
         return rouletteBasket(chosenRoll, roll)
-    } else if (type === "sixline") {
+    } else if (type == "sixline") {
         return rouletteSixLine(chosenRoll, roll)
-    } else if (type === "column") {
+    } else if (type == "column") {
         return rouletteColumn(chosenRoll, roll)
-    } else if (type === "dozen") {
+    } else if (type == "dozen") {
         return rouletteDozen(chosenRoll, roll)
-    } else if (type === "odd" || type === "even") {
+    } else if (type == "odd" || type == "even") {
         return rouletteOE(type, roll)
-    } else if (type === "red" || type === "black") {
+    } else if (type == "red" || type == "black") {
         return rouletteRB(type, roll)
-    } else if (type === "low" || type === "high") {
+    } else if (type == "low" || type == "high") {
         return rouletteLH(type, roll)
     } else {
         return 1
@@ -265,7 +245,7 @@ function checkRoulette(type, chosenRoll, roll) {
 }
 
 function rouletteNumber(chosenRoll, roll) {
-    if (chosenRoll[0] === roll) {
+    if (chosenRoll[0] == roll) {
         return 35
     } else {
         return 0
@@ -273,7 +253,7 @@ function rouletteNumber(chosenRoll, roll) {
 }
 
 function rouletteSplit(chosenRoll, roll) {
-    if (chosenRoll[0] === roll || chosenRoll[1] === roll) {
+    if (chosenRoll[0] == roll || chosenRoll[1] == roll) {
         return 17
     } else {
         return 0
@@ -289,7 +269,7 @@ function rouletteStreet(chosenRoll, roll) {
 }
 
 function rouletteCorner(chosenRoll, roll) {
-    if (chosenRoll[0] === roll || (chosenRoll[0] + 1) === roll || (chosenRoll[0] + 3) === roll || (chosenRoll[0] + 4) === roll) {
+    if (chosenRoll[0] == roll || (chosenRoll[0] + 1) == roll || (chosenRoll[0] + 3) == roll || (chosenRoll[0] + 4) == roll) {
         return 8
     } else {
         return 0
@@ -297,7 +277,7 @@ function rouletteCorner(chosenRoll, roll) {
 }
 
 function rouletteBasket(chosenRoll, roll) {
-    if (roll === 0 || roll === 2 || (chosenRoll[0] === 2 && roll === 3) || chosenRoll[0] === roll) {
+    if (roll == 0 || roll == 2 || (chosenRoll[0] == 2 && roll == 3) || chosenRoll[0] == roll) {
         return 8
     } else {
         return 0
@@ -314,7 +294,7 @@ function rouletteSixLine(chosenRoll, roll) {
 
 function rouletteColumn(chosenRoll, roll) {
     let remainder = roll % 3
-    if (chosenRoll[0] === remainder || (chosenRoll[0] === 3 && remainder === 0)) {
+    if (chosenRoll[0] == remainder || (chosenRoll[0] == 3 && remainder == 0)) {
         return 2
     } else {
         return 0
@@ -331,7 +311,7 @@ function rouletteDozen(chosenRoll, roll) {
 
 function rouletteOE(type, roll) {
     let remainder = roll % 2
-    if ((type === "odd" && remainder === 1) || (type === "even" && remainder === 0)) {
+    if ((type == "odd" && remainder == 1) || (type == "even" && remainder == 0)) {
         return 1
     } else {
         return 0
@@ -341,7 +321,7 @@ function rouletteOE(type, roll) {
 function rouletteRB(type, roll) {
     let color = rouletteCheckColor(roll)
 
-    if ((color === type) && roll !== 0) {
+    if ((color == type) && roll != 0) {
         return 1
     } else {
         return 0
@@ -349,7 +329,7 @@ function rouletteRB(type, roll) {
 }
 
 function rouletteLH(type, roll) {
-    if ((type === "low" && roll <= 18) || (type === "high" && roll >= 19)) {
+    if ((type == "low" && roll <= 18) || (type == "high" && roll >= 19)) {
         return 1
     } else {
         return 0
@@ -373,7 +353,7 @@ function addToJackpot(amount) {
 }
 
 function jackpotAmount(outerResolve, outerReject) {
-    let query = {id: "<bot>"};
+    let query = { id: "<bot>" };
 
     const creditCheckPromise = new Promise((resolve, reject) => {
         getFromDatabase(resolve, reject, query)
@@ -395,7 +375,7 @@ function jackpotAmount(outerResolve, outerReject) {
 function jackpotRoll(msg, amount, outerResolve, outerReject) {
     const jackpotRollPromise = new Promise((resolve, reject) => {
         let random = Math.round(Math.random() * 10000)
-        if (random === 666) {
+        if (random == 666) {
             jackpotAmount(resolve, reject)
         } else {
             addToJackpot(amount)
@@ -468,7 +448,7 @@ function giveMoney(id, arguments, outerResolve, outerReject) {
 }
 
 function checkCredits(userID, amount, outerResolve, outerReject) {
-    let query = {id: userID};
+    let query = { id: userID };
 
     const creditCheckPromise = new Promise((resolve, reject) => {
         getFromDatabase(resolve, reject, query)
@@ -489,16 +469,16 @@ function checkCredits(userID, amount, outerResolve, outerReject) {
 }
 
 function updateCredits(userID, amount, outerResolve, outerReject) {
-    let query = {id: userID};
+    let query = { id: userID };
     const creditUpdatePromise = new Promise((resolve, reject) => {
         getFromDatabase(resolve, reject, query)
     })
     creditUpdatePromise.then((result) => {
         let credits = result[0].credits
-        if (!credits && credits !== 0) {
+        if (!credits && credits != 0) {
             outerReject()
         } else {
-            let newvalues = {$set: {credits: (credits + amount)}};
+            let newvalues = { $set: { credits: (credits + amount) } };
             updateDatabase(outerResolve, outerReject, query, newvalues)
         }
     })
@@ -526,7 +506,7 @@ function duelWin(winnerID, loserID, amount, msg, outerResolve, outerReject) {
 function performDuel(ID, duelID, amount, msg) {
     let rn = Math.round(Math.random())
     const duelPromise = new Promise((resolve, reject) => {
-        if (rn === 0) {
+        if (rn == 0) {
             duelWin(ID, duelID, amount, msg, resolve, reject)
         } else {
             duelWin(duelID, ID, amount, msg, resolve, reject)
@@ -544,7 +524,7 @@ function performDuel(ID, duelID, amount, msg) {
 }
 
 function duelAccept(msg, duelistID, outerResolve, outerReject) {
-    let query = {id: duelistID};
+    let query = { id: duelistID };
     let duelTimeOut = 1000 * 60 * 5
 
     const duelAcceptPromise = new Promise((resolve, reject) => {
@@ -555,7 +535,7 @@ function duelAccept(msg, duelistID, outerResolve, outerReject) {
         if (!result[0].duelPartner || !result[0].duelTime) {
             outerReject()
         } else {
-            if (result[0].duelPartner === msg.author.id) {
+            if (result[0].duelPartner == msg.author.id) {
                 let now = Date.now()
                 if (+now - +(result[0].duelTime) < duelTimeOut) {
                     outerResolve(result)
@@ -576,8 +556,8 @@ function duelAccept(msg, duelistID, outerResolve, outerReject) {
 function duelRequest(msg, player, duel, amount) {
     if (duel) {
         let time = Date.now()
-        newvalues = {$set: {duelPartner: IDExtractor(player), duelTime: time, duelAmount: amount}};
-        let query = {id: msg.author.id};
+        newvalues = { $set: { duelPartner: IDExtractor(player), duelTime: time, duelAmount: amount } };
+        let query = { id: msg.author.id };
 
         const duelRequestPromise = new Promise((resolve, reject) => {
             updateDatabase(resolve, reject, query, newvalues)
@@ -622,7 +602,7 @@ function duel(msg, arguments) {
 
         let playerID = IDExtractor(player)
         let userID = msg.author.id
-        if (userID !== playerID) {
+        if (userID != playerID) {
             amount = roundAmount(amount)
             const duelPromise = new Promise((resolve, reject) => {
                 checkCredits(playerID, amount, resolve, reject)
@@ -666,7 +646,7 @@ function addDaily(msg, result, todayDate, query) {
     streakVal += 0.1
     newCredits = +(result[0].credits) + dailyAmount
 
-    newvalues = {$set: {credits: newCredits, dailyDate: todayDate, dailyStreak: streakVal}};
+    newvalues = { $set: { credits: newCredits, dailyDate: todayDate, dailyStreak: streakVal } };
 
     const addDailyPromise = new Promise((resolve, reject) => {
         updateDatabase(resolve, reject, query, newvalues)
@@ -686,7 +666,7 @@ function addDaily(msg, result, todayDate, query) {
 }
 
 function dailyCredits(msg) {
-    let query = {id: msg.author.id};
+    let query = { id: msg.author.id };
 
     let todayDate = new Date()
 
@@ -729,7 +709,7 @@ function dailyCredits(msg) {
 function doCoinFlip(result, amount, heads, msg, query) {
     let win = false
     let userCredits = result[0].credits
-    if (amount === "all") {
+    if (amount == "all") {
         amount = userCredits
     } else {
         amount = roundAmount(amount)
@@ -737,7 +717,7 @@ function doCoinFlip(result, amount, heads, msg, query) {
 
     if (amount <= userCredits && amount > 0) {
         let rn = Math.round(Math.random())
-        if (rn === 0 && heads || rn === 1 && !heads) {
+        if (rn == 0 && heads || rn == 1 && !heads) {
             win = true
         }
 
@@ -761,7 +741,7 @@ function doCoinFlip(result, amount, heads, msg, query) {
             addToJackpot(amount)
         }
 
-        newvalues = {$set: {credits: credRes}};
+        newvalues = { $set: { credits: credRes } };
 
         const coinFlipPromise = new Promise((resolve, reject) => {
             updateDatabase(resolve, reject, query, newvalues)
@@ -775,7 +755,8 @@ function doCoinFlip(result, amount, heads, msg, query) {
             msg.reply("The coin landed on the side!!");
             db.close();
         })
-    } else {
+    }
+    else {
         msg.reply("You don't have sufficient credits.");
     }
 }
@@ -783,7 +764,7 @@ function doCoinFlip(result, amount, heads, msg, query) {
 function createNewUser(msg, outerResolve, outerReject) {
 
     let date = new Date()
-    var myobj = {name: msg.author.username, id: msg.author.id, credits: 200, dailyDate: date};
+    var myobj = { name: msg.author.username, id: msg.author.id, credits: 200, dailyDate: date };
 
     const newUserPromise = new Promise((resolve, reject) => {
         insertToDatabase(resolve, reject, myobj)
@@ -804,7 +785,7 @@ function createNewUser(msg, outerResolve, outerReject) {
 function createNewUserByID(msg, userID) {
 
     let date = new Date()
-    var myobj = {id: userID, credits: 200, dailyDate: date};
+    var myobj = { id: userID, credits: 200, dailyDate: date };
 
     const newUserPromise = new Promise((resolve, reject) => {
         insertToDatabase(resolve, reject, myobj)
@@ -857,7 +838,7 @@ function updateDatabase(resolve, reject, query, newvalues) {
 }
 
 function coinFlip(msg, heads, amount) {
-    let query = {id: msg.author.id};
+    let query = { id: msg.author.id };
     const dbPromise = new Promise((resolve, reject) => {
         getFromDatabase(resolve, reject, query)
     });
@@ -890,11 +871,13 @@ function messageHandler(msg) {
     let arguments = msg.content.split(" ")
     let command = arguments[0].replace(prefix, "")
 
-    if (command === "heads") {
+    if (command == "heads") {
         coinFlip(msg, true, arguments[1])
-    } else if (command === "tails") {
+    }
+    else if (command == "tails") {
         coinFlip(msg, false, arguments[1])
-    } else if (command === "credits") {
+    }
+    else if (command == "credits") {
         let userID = ""
         let user = ""
         if (arguments[1]) {
@@ -905,7 +888,7 @@ function messageHandler(msg) {
             user = IDEncaser(userID)
         }
 
-        let query = {id: userID};
+        let query = { id: userID };
 
         const creditPromise = new Promise((resolve, reject) => {
             getFromDatabase(resolve, reject, query)
@@ -920,7 +903,7 @@ function messageHandler(msg) {
             createNewUserByID(msg, userID)
         })
 
-    } else if (command === "give") {
+    } else if (command == "give") {
         const givePromise = new Promise((resolve, reject) => {
             giveMoney(msg.author.id, arguments, resolve, reject)
         })
@@ -936,8 +919,8 @@ function messageHandler(msg) {
         })
 
 
-    } else if (command === "jackpot") {
-        if (arguments[1] === "roll") {
+    } else if (command == "jackpot") {
+        if (arguments[1] == "roll") {
             const jackpotPromise = new Promise((resolve, reject) => {
                 jackpot(msg, jackpotBetAmount, resolve, reject)
             })
@@ -972,16 +955,17 @@ function messageHandler(msg) {
 
         }
 
-    } else if (command === "roulette") {
+    } else if (command == "roulette") {
         roulette(msg, arguments)
-    } else if (command === "help") {
+    } else if (command == "help") {
         help(msg, jackpotBetAmount)
         db.close()
-    } else if (command === "daily") {
+    } else if (command == "daily") {
         dailyCredits(msg)
-    } else if (command === "duel") {
+    } else if (command == "duel") {
         duel(msg, arguments)
-    } else {
+    }
+    else {
         db.close()
     }
 }
@@ -990,26 +974,14 @@ function help(msg, jackpotBetAmount) {
     let response = new Discord.MessageEmbed()
     response.setTitle("Help")
     response.addFields(
-        {name: addPrefix("heads <credits>"), value: "50-50"},
-        {name: addPrefix("tails <credits>"), value: "50-50"},
-        {name: addPrefix("credits [@user]"), value: "Check the credits of yourself or another user."},
-        {
-            name: addPrefix("daily"),
-            value: "Get your daily bit of cash, don't forget to keep your streak! (Streak is broken after 40 hours)"
-        },
-        {
-            name: addPrefix("duel @user <credits>"),
-            value: "Duel another user so you can take their cash or have your cash taken by them."
-        },
-        {
-            name: addPrefix("give @user <credits>"),
-            value: "Give another user some of your credits. (Because you're nice like that)"
-        },
-        {
-            name: addPrefix("jackpot <roll>"),
-            value: "Rolling the jackpot currently costs **" + jackpotBetAmount + "** credits. \n Do **" + addPrefix("jackpot") + "** to see the current prize."
-        },
-        {name: addPrefix("roulette help"), value: "This opens a help menu for roulette."},
+        { name: addPrefix("heads <credits>"), value: "50-50" },
+        { name: addPrefix("tails <credits>"), value: "50-50" },
+        { name: addPrefix("credits [@user]"), value: "Check the credits of yourself or another user." },
+        { name: addPrefix("daily"), value: "Get your daily bit of cash, don't forget to keep your streak! (Streak is broken after 40 hours)" },
+        { name: addPrefix("duel @user <credits>"), value: "Duel another user so you can take their cash or have your cash taken by them." },
+        { name: addPrefix("give @user <credits>"), value: "Give another user some of your credits. (Because you're nice like that)" },
+        { name: addPrefix("jackpot <roll>"), value: "Rolling the jackpot currently costs **" + jackpotBetAmount + "** credits. \n Do **" + addPrefix("jackpot") + "** to see the current prize." },
+        { name: addPrefix("roulette help"), value: "This opens a help menu for roulette." },
     )
     msg.reply(response)
 }
