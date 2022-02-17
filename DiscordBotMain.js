@@ -1032,6 +1032,6 @@ client.on('message', msg => {
 
 client.on('error', (error) => console.log("Client Error: " + error));
 
-let token = "NjgyMjI3NDUxODY2NTEzNDY1.XlZ70w.IbUKIvEUgV1Tda_9_gFQLdMGLu8"
+let token = ""
 
 client.login(token);
